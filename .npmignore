@@ -1,0 +1,9 @@
+node_modules/
+.idea
+src
+.github
+tsconfig.json
+.eslintignore
+.eslintrc
+tests
+Makefile
