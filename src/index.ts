@@ -58,6 +58,8 @@ export class Stan {
 
   /**
    * Liste des arrêts d'une ligne
+   *
+   * NB: Un arret peut être commun à plusieurs lignes.
    * @param {Ligne} ligne Ligne
    * @example ```js
    * const { Stan } = require('stan-api')
@@ -99,7 +101,7 @@ export class Stan {
   }
 
   /**
-   * Lister les prochains passages d'un arrêt avec le temps d'arrivé estimé
+   * Lister les prochains passages d'un arrêt avec le temps d'attente estimé
    * @param {Arret} arret Arrêt
    * @example ```js
    * const { Stan } = require('stan-api')
@@ -190,7 +192,8 @@ export class Stan {
       data: qs.stringify({
         requete: 'horaires_directions',
         requete_val: {
-          ligne: ligne.id
+          ligne: ligne.id,
+          numlignepublic: ligne.numlignepublic
         }
       })
     })).data
