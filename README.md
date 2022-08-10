@@ -23,7 +23,7 @@ Lister les lignes du réseau de transport
 <a name="Stan+getArrets"></a>
 
 ### stan.getArrets(ligne) ⇒ <code>Promise.&lt;Array.&lt;Arret&gt;&gt;</code>
-Liste des arrêts d'une ligne
+Liste des arrêts d'une ligneNB: Un arret peut être commun à plusieurs lignes.
 
 **Kind**: instance method of [<code>Stan</code>](#Stan)  
 
@@ -36,7 +36,7 @@ Liste des arrêts d'une ligne
 <a name="Stan+getProchainsPassages"></a>
 
 ### stan.getProchainsPassages(arret) ⇒ <code>Promise.&lt;Array.&lt;Passage&gt;&gt;</code>
-Lister les prochains passages d'un arrêt avec le temps d'arrivé estimé
+Lister les prochains passages d'un arrêt avec le temps d'attente estimé
 
 **Kind**: instance method of [<code>Stan</code>](#Stan)  
 
