@@ -8,40 +8,25 @@ import { Passage } from './Ligne/Passage'
 /**
  * Support non officiel de l'API du Service de Transport de l'Agglomération Nancéienne (STAN).
  *
- * Ce module permet de récupérer la liste des lignes et arrêts du réseau ainsi que les prochains passages.
+ * Ce module permet de récupérer:
+ * - les prochains passages
+ * - les lignes
+ * - les directions
+ * - les arrêts
  *
  */
 export class Stan {
-  protected httpClient: AxiosInstance
-
-  /**
-  * @example ```js
-  * const { Stan } = require('stan-api')
-  *
-  * const usager = new Stan()
-  * ```
-  */
-  public constructor () {
-    this.httpClient = axios.create({
-      baseURL: 'https://www.reseau-stan.com/?type=476',
-      headers: {
-        'X-Requested-With': 'XMLHttpRequest'
-      }
-    })
-  }
-
   /**
   * Lister les lignes du réseau de transport
   * @example ```js
   * const { Stan } = require('stan-api')
   *
-  * const usager = new Stan()
-  * usager.getLignes().then(lignes => console.log(lignes))
+  * Stan.getLignes().then(lignes => console.log(lignes))
   * ```
   * @returns {Promise<Ligne[]>}
   */
-  public async getLignes (): Promise<Ligne[]> {
-    const rep = (await this.httpClient.get('https://www.reseau-stan.com/')).data
+  public static async getLignes (): Promise<Ligne[]> {
+    const rep = (await Stan.getClient().get('https://www.reseau-stan.com/')).data
     const regex = /data-ligne="(\d+)" data-numlignepublic="([^"]+)" data-osmid="(line[^"+]+)" data-libelle="([^"]+)" value="[^"]+">/g
     const lignes: Ligne[] = []
     let rawLigne
@@ -64,20 +49,18 @@ export class Stan {
    * @example ```js
    * const { Stan } = require('stan-api')
    *
-   * const usager = new Stan()
-   *
    * const ligneT4 = {
    *   id: 2332,
    *   numlignepublic: 'T4',
    *   osmid: 'line:GST:4-97',
    *   libelle: 'Tempo 4 - Laxou CLB <> Houdemont Porte Sud'
    * }
-   * usager.getArrets(ligneT4).then(arrets => console.log(arrets))
+   * Stan.getArrets(ligneT4).then(arrets => console.log(arrets))
    * ```
    * @returns {Promise<Arret[]>}
    */
-  public async getArrets (ligne: Partial<Ligne> & {id: number, numlignepublic: string}): Promise<Arret[]> {
-    const rep = (await this.httpClient.request({
+  public static async getArrets (ligne: Partial<Ligne> & {id: number, numlignepublic: string}): Promise<Arret[]> {
+    const rep = (await Stan.getClient().request({
       method: 'POST',
       data: qs.stringify({
         requete: 'tempsreel_arrets',
@@ -106,8 +89,6 @@ export class Stan {
    * @example ```js
    * const { Stan } = require('stan-api')
    *
-   * const usager = new Stan()
-   *
    * const arret = {
    *   ligne: {
    *     id: 2332,
@@ -118,7 +99,7 @@ export class Stan {
    *   libelle: 'Place Stanislas - Dom Calmet',
    *   osmid: 'stop_point:GST:SP:NYPCL1'
    * }
-   * usager.getProchainsPassages(arret).then(p => {
+   * Stan.getProchainsPassages(arret).then(p => {
    *   console.log(`Liste des prochains passages de l'arrêt "${arret.libelle}" de la ligne ${arret.ligne.numlignepublic}:
    * ${p.map(passage => `${passage.direction} - Temps d'attente: ${Math.trunc(passage.temps_min/60)}H${passage.temps_min%60}min`).join('\n')}`)
    * })
@@ -133,8 +114,8 @@ export class Stan {
    * ```
    * @returns {Promise<Passage[]>}
    */
-  public async getProchainsPassages (arret: Partial<Arret> & {osmid: string, ligne: Partial<Ligne>}): Promise<Passage[]> {
-    const rep = (await this.httpClient.request({
+  public static async getProchainsPassages (arret: Partial<Arret> & {osmid: string, ligne: Partial<Ligne>}): Promise<Passage[]> {
+    const rep = (await Stan.getClient().request({
       method: 'POST',
       data: qs.stringify({
         requete: 'tempsreel_submit',
@@ -175,19 +156,18 @@ export class Stan {
    * @example ```js
    * const { Stan } = require('stan-api')
    *
-   * const usager = new Stan()
    * const ligneT4 = {
    *   id: 2332,
    *   numlignepublic: 'T4',
    *   osmid: 'line:GST:4-97',
    *   libelle: 'Tempo 4 - Laxou CLB <> Houdemont Porte Sud'
    * }
-   * usager.getDirections(ligneT4).then(directions => console.log(directions))
+   * Stan.getDirections(ligneT4).then(directions => console.log(directions))
    * ```
    * @returns {Promise<Direction[]>}
    */
-  public async getDirections (ligne: Partial<Ligne> & {id: number, numlignepublic: string}): Promise<Direction[]> {
-    const rep = (await this.httpClient.request({
+  public static async getDirections (ligne: Partial<Ligne> & {id: number, numlignepublic: string}): Promise<Direction[]> {
+    const rep = (await Stan.getClient().request({
       method: 'POST',
       data: qs.stringify({
         requete: 'horaires_directions',
@@ -216,8 +196,8 @@ export class Stan {
    * @param {Direction} direction Direction d'une ligne
    * @returns {Promise<Arret[]>}
    */
-  public async getArretsDirection (direction: Direction): Promise<Arret[]> {
-    const rep = (await this.httpClient.request({
+  public static async getArretsDirection (direction: Direction): Promise<Arret[]> {
+    const rep = (await Stan.getClient().request({
       method: 'POST',
       data: qs.stringify({
         requete: 'horaires_arrets',
@@ -243,5 +223,14 @@ export class Stan {
       })
     }
     return arrets
+  }
+
+  private static getClient (): AxiosInstance {
+    return axios.create({
+      baseURL: 'https://www.reseau-stan.com/?type=476',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
   }
 }
