@@ -84,7 +84,8 @@ export class Stan {
   }
 
   /**
-   * Lister les prochains passages d'un arrêt avec le temps d'attente estimé
+   * Lister les prochains passages d'un arrêt avec le temps d'attente estimé.
+   * Il n'est pas nécessaire de préciser une ligne, on récupère alors tous les passages des lignes desservants l'arrêt
    * @param {Arret} arret Arrêt
    * @example ```js
    * const { Stan } = require('stan-api')
@@ -114,44 +115,45 @@ export class Stan {
    * ```
    * @returns {Promise<Passage[]>}
    */
-  public static async getProchainsPassages (arret: Partial<Arret> & {osmid: string, ligne: Partial<Ligne>}): Promise<Passage[]> {
+  public static async getProchainsPassages (arret: Partial<Arret> & {osmid: string, ligne?: Partial<Ligne>}): Promise<Passage[]> {
     const rep = (await Stan.getClient().request({
       method: 'POST',
       data: qs.stringify({
         requete: 'tempsreel_submit',
         requete_val: {
           arret: arret.osmid,
-          ligne_omsid: arret.ligne.osmid
+          ligne_omsid: arret.ligne?.osmid
         }
       })
     })).data.split('<li>').slice(1)
     const passages: Passage[] = []
 
-    for (const directionBloc of rep) {
-      const direction = /<span>([^"]+)<\/span><\/span>/g.exec(directionBloc) as RegExpExecArray
+    for (const rawPassageLi of rep) {
+      const direction = /<span>([^"]+)<\/span><\/span>/g.exec(rawPassageLi) as RegExpExecArray
+      const ligne = /<span id="ui-ligne-(\d+)".*\/pictolignes\/([^"]+).png'/g.exec(rawPassageLi) as RegExpExecArray
       const regexPassagesNow = /class="tpsreel-temps-item large-1 "><i class="icon-car1"><\/i><i title="Temps Réel" class="icon-wifi2"><\/i>/g
       const regexPassagesMin = /class="tpsreel-temps-item large-1 ">(\d+) min/g
       const regexPassagesH = /temps-item-heure">(\d+)h(\d+)(.*)<\/a>/g
       let rawPassage
-      while ((rawPassage = regexPassagesMin.exec(directionBloc)) !== null) {
+      while ((rawPassage = regexPassagesMin.exec(rawPassageLi)) !== null) {
         passages.push({
-          arret,
+          arret: { ligne: { ...arret.ligne, id: parseInt(ligne[1], 10), numlignepublic: ligne[2] }, ...arret },
           direction: direction[1],
           temps_min: parseInt(rawPassage[1]),
           temps_theorique: false
         })
       }
-      while ((rawPassage = regexPassagesH.exec(directionBloc)) !== null) {
+      while ((rawPassage = regexPassagesH.exec(rawPassageLi)) !== null) {
         passages.push({
-          arret,
+          arret: { ligne: { ...arret.ligne, id: parseInt(ligne[1], 10), numlignepublic: ligne[2] }, ...arret },
           direction: direction[1],
           temps_min: parseInt(rawPassage[1]) * 60 + parseInt(rawPassage[2]),
           temps_theorique: rawPassage[0].includes('tpsreel-temps-item-tpstheorique')
         })
       }
-      while ((rawPassage = regexPassagesNow.exec(directionBloc)) !== null) {
+      while ((rawPassage = regexPassagesNow.exec(rawPassageLi)) !== null) {
         passages.push({
-          arret,
+          arret: { ligne: { ...arret.ligne, id: parseInt(ligne[1], 10), numlignepublic: ligne[2] }, ...arret },
           direction: direction[1],
           temps_min: 0,
           temps_theorique: false
@@ -230,7 +232,8 @@ export class Stan {
         ligne,
         libelle: rawArret[1],
         id: parseInt(rawArret[5]),
-        direction: { ...direction, ligne }
+        direction: { ...direction, ligne },
+        osmid: ''
       })
     }
     return arrets
