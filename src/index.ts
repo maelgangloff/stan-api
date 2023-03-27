@@ -129,21 +129,32 @@ export class Stan {
 
     for (const directionBloc of rep) {
       const direction = /<span>([^"]+)<\/span><\/span>/g.exec(directionBloc) as RegExpExecArray
+      const regexPassagesNow = /class="tpsreel-temps-item large-1 "><i class="icon-car1"><\/i><i title="Temps Réel" class="icon-wifi2"><\/i>/g
       const regexPassagesMin = /class="tpsreel-temps-item large-1 ">(\d+) min/g
-      const regexPassagesH = /temps-item-heure">(\d+)h(\d+)</g
+      const regexPassagesH = /temps-item-heure">(\d+)h(\d+)(.*)<\/a>/g
       let rawPassage
       while ((rawPassage = regexPassagesMin.exec(directionBloc)) !== null) {
         passages.push({
           arret,
           direction: direction[1],
-          temps_min: parseInt(rawPassage[1])
+          temps_min: parseInt(rawPassage[1]),
+          temps_theorique: false
         })
       }
       while ((rawPassage = regexPassagesH.exec(directionBloc)) !== null) {
         passages.push({
           arret,
           direction: direction[1],
-          temps_min: parseInt(rawPassage[1]) * 60 + parseInt(rawPassage[2])
+          temps_min: parseInt(rawPassage[1]) * 60 + parseInt(rawPassage[2]),
+          temps_theorique: rawPassage[0].includes('tpsreel-temps-item-tpstheorique')
+        })
+      }
+      while ((rawPassage = regexPassagesNow.exec(directionBloc)) !== null) {
+        passages.push({
+          arret,
+          direction: direction[1],
+          temps_min: 0,
+          temps_theorique: false
         })
       }
     }
