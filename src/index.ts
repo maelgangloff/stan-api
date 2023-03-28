@@ -4,6 +4,7 @@ import { Arret } from './Ligne/Arret'
 import { Direction } from './Ligne/Direction'
 import { Ligne } from './Ligne/Ligne'
 import { Passage } from './Ligne/Passage'
+import { Place } from './Ligne/Place'
 
 /**
  * Support non officiel de l'API du Service de Transport de l'Agglomération Nancéienne (STAN).
@@ -23,7 +24,7 @@ export class Stan {
   *
   * Stan.getLignes().then(lignes => console.log(lignes))
   * ```
-  * @returns {Promise<Ligne[]>}
+  * @returns {Promise<Ligne[]>} Une liste contenant les lignes du réseau
   */
   public static async getLignes (): Promise<Ligne[]> {
     const rep = (await Stan.getClient().get('https://www.reseau-stan.com/')).data
@@ -57,7 +58,7 @@ export class Stan {
    * }
    * Stan.getArrets(ligneT4).then(arrets => console.log(arrets))
    * ```
-   * @returns {Promise<Arret[]>}
+   * @returns {Promise<Arret[]>} Une liste contenant les arrêts de la ligne
    */
   public static async getArrets (ligne: Partial<Ligne> & {id: number, numlignepublic: string}): Promise<Arret[]> {
     const rep = (await Stan.getClient().request({
@@ -113,7 +114,7 @@ export class Stan {
    * Direction Laxou Champ-le-Boeuf - Temps d'attente: 0H1min
    * Direction Laxou Champ-le-Boeuf - Temps d'attente: 0H8min
    * ```
-   * @returns {Promise<Passage[]>}
+   * @returns {Promise<Passage[]>} Les prochains passages d'un arrêt
    */
   public static async getProchainsPassages (arret: Partial<Arret> & {osmid: string, ligne?: Partial<Ligne>}): Promise<Passage[]> {
     const rep = (await Stan.getClient().request({
@@ -177,7 +178,7 @@ export class Stan {
    * }
    * Stan.getDirections(ligneT4).then(directions => console.log(directions))
    * ```
-   * @returns {Promise<Direction[]>}
+   * @returns {Promise<Direction[]>} Une liste contenant les directions d'une ligne
    */
   public static async getDirections (ligne: Partial<Ligne> & {id: number, numlignepublic: string}): Promise<Direction[]> {
     const rep = (await Stan.getClient().request({
@@ -207,7 +208,7 @@ export class Stan {
   /**
    * Lister les arrêts sur le chemin d'une direction d'une ligne
    * @param {Direction} direction Direction d'une ligne
-   * @returns {Promise<Arret[]>}
+   * @returns {Promise<Arret[]>} Les arrêts de la direction
    */
   public static async getArretsDirection (direction: Direction): Promise<Arret[]> {
     const rep = (await Stan.getClient().request({
@@ -237,6 +238,23 @@ export class Stan {
       })
     }
     return arrets
+  }
+
+  /**
+   * Rechercher un arrêt et obtenir l'identifiant associé (OSMID) nécessaire pour obtenir les prochains passages
+   * @param {string} request Le nom d'un arrêt à chercher
+   * @returns Une liste contenant les arrêts et les identifiants associés
+   */
+  public static async getArretOsmid(request: string): Promise<{osmid: string, libelle: string}[]> {
+    return (await Stan.getClient().request<Place[]>({
+      method: 'POST',
+      data: qs.stringify({
+        requete: 'autocomplete_places',
+        requete_val: {
+          request
+        }
+      })
+    })).data.filter((place: Place) => place.value.startsWith('stop_area:')).map(place => ({osmid: place.value, libelle: place.label}))
   }
 
   private static getClient (): AxiosInstance {

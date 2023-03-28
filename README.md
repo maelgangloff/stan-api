@@ -58,7 +58,8 @@ Stan.getArrets(ligneT4).then(arrets => console.log(arrets))
 <a name="Stan.getProchainsPassages"></a>
 
 ### Stan.getProchainsPassages(arret) ⇒ <code>Promise.&lt;Array.&lt;Passage&gt;&gt;</code>
-Lister les prochains passages d'un arrêt avec le temps d'attente estimé
+Lister les prochains passages d'un arrêt avec le temps d'attente estimé.
+Il n'est pas nécessaire de préciser une ligne, on récupère alors tous les passages des lignes desservants l'arrêt
 
 **Kind**: static method of [<code>Stan</code>](#Stan)  
 
