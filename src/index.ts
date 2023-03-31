@@ -245,7 +245,7 @@ export class Stan {
    * @param {string} request Le nom d'un arrêt à chercher
    * @returns Une liste contenant les arrêts et les identifiants associés
    */
-  public static async getArretOsmid(request: string): Promise<{osmid: string, libelle: string}[]> {
+  public static async getArretOsmid (request: string): Promise<{osmid: string, libelle: string}[]> {
     return (await Stan.getClient().request<Place[]>({
       method: 'POST',
       data: qs.stringify({
@@ -254,7 +254,7 @@ export class Stan {
           request
         }
       })
-    })).data.filter((place: Place) => place.value.startsWith('stop_area:')).map(place => ({osmid: place.value, libelle: place.label}))
+    })).data.filter((place: Place) => place.value.startsWith('stop_area:GST:SA:')).map(place => ({ osmid: place.value.replace('stop_area:GST:SA:', 'stop_point:GST:SP:'), libelle: place.label }))
   }
 
   private static getClient (): AxiosInstance {
