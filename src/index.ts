@@ -71,7 +71,7 @@ export class Stan {
         }
       })
     })).data
-    const regex = /data-libelle="([^"]+)" data-ligne="(\d+)" data-numlignepublic="(\w+)" value="([^"]+)">([^"]+)<\/option>/g
+    const regex = /data-libelle="([^"]+)" data-ligne="(\d+)" data-numlignepublic="([^"]+)" value="([^"]+)">([^<]+)<\/option>/g;
     const arrets: Arret[] = []
     let rawArret
     while ((rawArret = regex.exec(rep)) !== null) {
