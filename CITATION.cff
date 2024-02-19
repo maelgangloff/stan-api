@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+title: Stan API
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Maël
+    family-names: Gangloff
+    email: contact@maelgangloff.fr
+    orcid: 'https://orcid.org/0000-0002-7729-724X'
+identifiers:
+  - type: url
+    value: >-
+      https://github.com/maelgangloff/stan-api/releases/tag/1.1.5
+    description: Release v3.0.2 of scolengo-api
+repository-code: 'https://github.com/maelgangloff/stan-api'
+abstract: Support non officiel de l'API du Service de Transport de l'Agglomération Nancéienne (STAN)
+keywords:
+  - STAN
+  - API
+  - Nancy
+license: GPL-3.0-or-later
+version: 1.1.5
+date-released: '2024-02-17'
+license-url: 'https://github.com/maelgangloff/stan-api/blob/master/LICENSE'
